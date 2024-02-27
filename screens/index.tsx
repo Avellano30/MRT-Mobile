@@ -5,18 +5,18 @@ import Home from './home';
 import Cards from './cards';
 
 
-const HomeRoute = () => <Home/>;
-const CardsRoute = () => <Cards/>;
+const HomeRoute = () => <Home />;
+const CardsRoute = () => <Cards />;
 const TransactionsRoute = () => <Text>Transactions</Text>;
 const SettingsRoute = () => <Text>Settings</Text>;
 
 const Main = () => {
-  const [index, setIndex] = React.useState(0);
+  const [index, setIndex] = React.useState(1);
   const [routes] = React.useState([
-    { key: 'home', title: 'Home', focusedIcon: 'home', unfocusedIcon: 'home-outline'},
-    { key: 'cards', title: 'Cards', focusedIcon: 'card-multiple', unfocusedIcon: 'card-multiple-outline'},
-    { key: 'transactions', title: 'Transactions', focusedIcon: 'post', unfocusedIcon: 'post-outline'},
-    { key: 'settings', title: 'Settings', focusedIcon: 'account-wrench', unfocusedIcon: 'account-wrench-outline'},
+    { key: 'home', title: 'Home', focusedIcon: 'home', unfocusedIcon: 'home-outline' },
+    { key: 'cards', title: 'Cards', focusedIcon: 'card-multiple', unfocusedIcon: 'card-multiple-outline' },
+    { key: 'transactions', title: 'Transactions', focusedIcon: 'post', unfocusedIcon: 'post-outline' },
+    { key: 'settings', title: 'Settings', focusedIcon: 'account-wrench', unfocusedIcon: 'account-wrench-outline' },
   ]);
 
   const renderScene = BottomNavigation.SceneMap({
@@ -31,6 +31,9 @@ const Main = () => {
       navigationState={{ index, routes }}
       onIndexChange={setIndex}
       renderScene={renderScene}
+      barStyle={{ backgroundColor: 'white' }}
+      // activeColor='lightblue'
+      // inactiveColor='white'
     />
   );
 };
