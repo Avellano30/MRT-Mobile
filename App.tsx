@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -8,21 +7,24 @@ import Main from './screens/index';
 import Pin from './screens/newPin';
 import AddCard from './screens/addCard';
 import Cards from './screens/cards';
+import CameraQR from './screens/camera';
 
 
 const Stack = createNativeStackNavigator();
 
 function App() {
   return (
-    Per
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="AddCard">
+      <Stack.Navigator initialRouteName="Main">
         <Stack.Screen name="Main" component={Main} options={{ headerShown: false }} />
         <Stack.Screen name="AddCard" component={AddCard} options={{ headerShown: false }} />
         <Stack.Screen name="Cards" component={Cards} options={{ headerShown: false }} />
         <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
         <Stack.Screen name="Pin" component={Pin} options={{ headerShown: false }} />
+
+        <Stack.Screen name="CameraQR" component={CameraQR} options={{ headerShown: false }} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

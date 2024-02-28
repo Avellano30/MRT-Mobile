@@ -1,7 +1,8 @@
+import Clipboard from '@react-native-clipboard/clipboard';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { ScrollView, TouchableWithoutFeedback, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { Appbar, Button, Card, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,11 +37,16 @@ const Cards = () => {
 
     const _goAdd = () => navigation.navigate('AddCard' as never);
     const _handleMore = () => console.log('Shown more');
-    const [cardClick, setCardClick] = useState(false);
-    const [card, setCard] = useState<BeepCard[]>();
+    const [cardClick, setCardClick] = useState<Number | null>(null);
+    const [cards, setCards] = useState<BeepCard[]>([]);
     const isFocused = useIsFocused();
-    const handleCardClick = () => {
-        setCardClick(!cardClick);
+
+    const handleCardClick = (cardId: number) => {
+        if (cardClick !== cardId) {
+            setCardClick(cardId);
+        } else {
+            setCardClick(null);
+        }
     }
 
     const [deviceID, setDeviceID] = useState('');
@@ -48,110 +54,115 @@ const Cards = () => {
         setDeviceID(uniqueId);
     });
 
-    useEffect(() => {
-        console.log(deviceID)
-        const fetchCards = async () => {
-            try {
-                const response = await fetch(`${apiUrl}/mobile/card/${deviceID}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
+    const fetchCards = async () => {
+        try {
+            const response = await fetch(`${apiUrl}/mobile/card/${deviceID}`);
 
-                const data = await response.json();
-                console.log(data)
-                setCard(data);
-
-            } catch (error) {
-                console.log(error);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
+
+            const data = await response.json();
+
+            setCards(data);
+
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    useEffect(() => {
+        if (deviceID) {
+            fetchCards();
+        }
+    }, [isFocused, deviceID])
+
+    const formattedDate = (dateString: string) => {
+        const date = new Date(dateString);
+        const options: Intl.DateTimeFormatOptions = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Asia/Manila',
         };
 
-        fetchCards();
-    }, [isFocused]);
+        return `${date.toLocaleDateString(undefined, options)}`;
+    };
 
     return (
         <>
             <SafeAreaView style={{ backgroundColor: '#edf3ff', flex: 1 }}>
-                <Appbar.Header mode='center-aligned' style={{ backgroundColor: '#0e1c43', height: 50 }} statusBarHeight={0}>
-                    {/* <Appbar.BackAction onPress={_goBack} /> */}
-                    <Appbar.Content title="Cards" titleStyle={{ fontWeight: '900', color: 'white', fontSize: 18 }} />
-                    {/* <Appbar.Action icon="magnify" onPress={_handleSearch} /> */}
-                    <Appbar.Action icon="plus" onPress={_handleMore} color='lightblue' />
-                </Appbar.Header>
+                <ScrollView>
+                    <Appbar.Header mode='center-aligned' style={{ backgroundColor: '#0e1c43', height: 50 }} statusBarHeight={0}>
+                        {/* <Appbar.BackAction onPress={_goBack} /> */}
+                        <Appbar.Content title="Cards" titleStyle={{ fontWeight: '900', color: 'white', fontSize: 18 }} />
+                        {/* <Appbar.Action icon="magnify" onPress={_handleSearch} /> */}
+                        <Appbar.Action icon="plus" onPress={_handleMore} color='lightblue' />
+                    </Appbar.Header>
 
-                <View style={{ marginBottom: 15 }} />
+                    <View style={{ marginBottom: 15 }} />
 
-                <Card style={{ marginLeft: 15, marginRight: 15, marginBottom: 5, backgroundColor: 'white' }} onPress={handleCardClick}>
-                    <Card.Content style={{ position: 'absolute', marginLeft: 5, marginTop: 5, zIndex: 50 }}>
-                        <Text style={{ color: 'white', fontSize: 24, fontWeight: '700' }}>6378051234567890</Text>
-                        <Text style={{ color: 'white', fontWeight: '300', fontSize: 11 }}>Valid Until 2026-01-30</Text>
-                        <Text style={{ color: '#b5b8bf', fontWeight: '300', fontSize: 11, marginTop: 45 }}>Available Balance as of February 24, 2024 06:38 AM</Text>
-                        <Text style={{ color: 'white', fontSize: 30, fontWeight: '900' }}>₱63.00</Text>
-                    </Card.Content>
-                    <Card.Cover source={require('../assets/card.png')} style={{ zIndex: 0, borderColor: '#0e1c43', height: 180 }} />
-                    <View style={{ position: 'absolute', backgroundColor: 'rgba(0,0,0,0.3)', height: 180, borderRadius: 10, top: 0, left: 0, right: 0, bottom: 0 }} />
-                    {cardClick &&
-                        <Card.Content style={{ marginLeft: 5, marginTop: 15 }}>
-                            <Text style={{ fontSize: 17, fontWeight: 'bold' }}>Latest Transaction (3)</Text>
-                            <Text style={{ fontSize: 12 }}>as of February 24, 2024 06:38 AM</Text>
-                            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 15 }}>
-                                <View style={{ backgroundColor: '#cfd6dc', padding: 5, width: 40, height: 40, borderRadius: 100, alignItems: 'center', justifyContent: 'center' }}>
-                                    <Icon name="card-outline" size={25} color={'black'} />
-                                </View>
-                                <View style={{ marginLeft: 10 }}>
-                                    <Text style={{ fontSize: 15 }}>MRT3 Rail Service Provider</Text>
-                                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: 270 }}>
-                                        <Text style={{ fontSize: 11, color: 'gray', verticalAlign: 'bottom' }}>February 24, 2024 06:38 AM</Text>
-                                        <Text style={{ fontSize: 13, color: 'red', verticalAlign: 'top' }}>- ₱63.00</Text>
-                                    </View>
-                                </View>
-                            </View>
-                            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 15 }}>
-                                <View style={{ backgroundColor: '#cfd6dc', padding: 5, width: 40, height: 40, borderRadius: 100, alignItems: 'center', justifyContent: 'center' }}>
-                                    <Icon name="card-outline" size={25} color={'black'} />
-                                </View>
-                                <View style={{ marginLeft: 10 }}>
-                                    <Text style={{ fontSize: 15 }}>MRT3 Rail Service Provider</Text>
-                                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: 270 }}>
-                                        <Text style={{ fontSize: 11, color: 'gray', verticalAlign: 'bottom' }}>February 24, 2024 06:38 AM</Text>
-                                        <Text style={{ fontSize: 13, color: 'red', verticalAlign: 'top' }}>- ₱63.00</Text>
-                                    </View>
-                                </View>
-                            </View>
-                            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 15 }}>
-                                <View style={{ backgroundColor: '#cfd6dc', padding: 5, width: 40, height: 40, borderRadius: 100, alignItems: 'center', justifyContent: 'center' }}>
-                                    <Icon name="card-outline" size={25} color={'black'} />
-                                </View>
-                                <View style={{ marginLeft: 10 }}>
-                                    <Text style={{ fontSize: 15 }}>MRT3 Rail Service Provider</Text>
-                                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: 270 }}>
-                                        <Text style={{ fontSize: 11, color: 'gray', verticalAlign: 'bottom' }}>February 24, 2024 06:38 AM</Text>
-                                        <Text style={{ fontSize: 13, color: 'red', verticalAlign: 'top' }}>- ₱63.00</Text>
-                                    </View>
-                                </View>
-                            </View>
+                    {cards && cards.map((card, index) => (
+                        <Card key={card.cardId} style={{ marginLeft: 15, marginRight: 15, marginBottom: 5, backgroundColor: 'white' }} onPress={() => handleCardClick(card.cardId)}>
+                            <Card.Content style={{ position: 'absolute', marginLeft: 5, marginTop: 5, zIndex: 50 }}>
+                                <TouchableWithoutFeedback onLongPress={() => Clipboard.setString(card.cardId.toString())}>
+                                    <Text style={{ color: 'white', fontSize: 24, fontWeight: '700' }}>{card.cardId}</Text>
+                                </TouchableWithoutFeedback>
+                                <Text style={{ color: 'white', fontWeight: '300', fontSize: 11 }}>Valid Until 2026-01-30</Text>
+                                <Text style={{ color: '#b5b8bf', fontWeight: '300', fontSize: 11, marginTop: 45 }}>
+                                    Available Balance as of {formattedDate(card.transactions.length > 0 ? (card.transactions[card.transactions.length - 1].tapOut?.date ?? new Date().toISOString()) : new Date().toISOString())}
+                                </Text>
+                                <Text style={{ color: 'white', fontSize: 30, fontWeight: '900' }}>₱{card.balance}.00</Text>
+                            </Card.Content>
+                            <Card.Cover source={require('../assets/card.png')} style={{ zIndex: 0, borderColor: '#0e1c43', height: 180 }} />
+                            <View style={{ position: 'absolute', backgroundColor: 'rgba(0,0,0,0.3)', height: 180, borderRadius: 10, top: 0, left: 0, right: 0, bottom: 0 }} />
+
+                            {cardClick === card.cardId && card.transactions.length > 0 && (
+                                <Card.Content style={{ marginLeft: 5, marginVertical: 15 }}>
+                                    <Text style={{ fontSize: 17, fontWeight: 'bold' }}>Latest Transaction ({card.transactions.length})</Text>
+                                    <Text style={{ fontSize: 12 }}>as of {formattedDate(card.transactions[card.transactions.length - 1].tapOut?.date ?? new Date().toISOString())}</Text>
+                                    {card.transactions.slice(-5).reverse().map((transaction, index) => (
+                                        <View key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 15 }}>
+                                            <View style={{ backgroundColor: '#cfd6dc', padding: 5, width: 40, height: 40, borderRadius: 100, alignItems: 'center', justifyContent: 'center' }}>
+                                                <Icon name="card-outline" size={25} color={'black'} />
+                                            </View>
+                                            <View style={{ marginLeft: 10 }}>
+                                                <Text style={{ fontSize: 15 }}>MRT3 Rail Service Provider</Text>
+                                                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: 270 }}>
+                                                    <Text style={{ fontSize: 11, color: 'gray', verticalAlign: 'bottom' }}>{transaction.tapOut?.date ? formattedDate(transaction.tapOut.date) : 'N/A'}</Text>
+                                                    <Text style={{ fontSize: 13, color: 'red', verticalAlign: 'top' }}>- ₱{transaction.fare}.00</Text>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    ))}
+                                </Card.Content>
+                            )}
+
+                            {cardClick === card.cardId && card.transactions.length === 0 && (
+                                <Card.Content style={{ marginLeft: 5, marginTop: 15 }}>
+                                    <Text style={{ fontSize: 17, fontWeight: 'bold' }}>Latest Transaction ({card.transactions.length})</Text>
+                                    <Text style={{ fontSize: 12 }}>as of {formattedDate(new Date().toISOString())}</Text>
+                                    <Text style={{ fontSize: 17, textAlign: 'center', marginTop: 15 }}>No transactions to display</Text>
+                                </Card.Content>
+                            )}
+                        </Card>
+                    ))}
+
+                    <Card style={{ borderStyle: 'dashed', borderColor: 'black', borderWidth: 2, marginLeft: 15, marginRight: 15, marginBottom: 15 }}>
+                        <Card.Content style={{ zIndex: 50 }}>
+                            <Text style={{ fontSize: 18, fontWeight: '700', textAlign: 'center' }}>Add a card™</Text>
+                            <Text style={{ fontWeight: '300', fontSize: 11, textAlign: 'center', marginTop: 5 }}>The card number is found at the back of your card™</Text>
+                            <Card.Actions>
+                                <Button textColor='white' style={{ backgroundColor: '#0e1c43', marginLeft: 'auto', marginRight: 'auto', marginVertical: 15 }} onPress={_goAdd}>Add card</Button>
+                            </Card.Actions>
                         </Card.Content>
-                    }
-                </Card>
-
-                <Card style={{ borderStyle: 'dashed', borderColor: 'black', borderWidth: 2, marginLeft: 15, marginRight: 15 }}>
-                    <Card.Content style={{ zIndex: 50 }}>
-                        <Text style={{ fontSize: 18, fontWeight: '700', textAlign: 'center' }}>Add a card™</Text>
-                        <Text style={{ fontWeight: '300', fontSize: 11, textAlign: 'center', marginTop: 5 }}>The card number is found at the back of your card™</Text>
-                        <Card.Actions>
-                            <Button textColor='white' style={{ backgroundColor: '#0e1c43', marginLeft: 'auto', marginRight: 'auto', marginVertical: 15 }} onPress={_goAdd}>Add card</Button>
-                        </Card.Actions>
-                    </Card.Content>
-                    <View style={{ position: 'absolute', height: 148, width: 358, backgroundColor: '#c1e1ec', borderRadius: 10 }} />
-                </Card>
+                        <View style={{ position: 'absolute', height: 148, width: 358, backgroundColor: '#c1e1ec', borderRadius: 10 }} />
+                    </Card>
+                </ScrollView>
             </SafeAreaView>
-
         </>
 
     );
