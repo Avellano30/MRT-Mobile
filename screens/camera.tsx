@@ -1,15 +1,24 @@
-import React, { useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
-import { Camera, useCameraDevice, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
+import { Button, Text } from 'react-native-paper';
+import { Camera, Code, useCameraDevice, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
 
 const CameraQR = () => {
     const device = useCameraDevice('back');
-    
+    const navigation = useNavigation();
+    const [qrCode, setQrCode] = useState<Code>();
+
     const codeScanner = useCodeScanner({
         codeTypes: ['qr', 'ean-13'],
         onCodeScanned: (codes) => {
-            console.log(`Scanned ${codes.length} codes!`);
+            if (codes[0].value === qrCode?.value) {
+                console.log('Scanned already');
+                return;
+            } else {
+                setQrCode(codes[0]);
+                console.log(codes[0].value);
+            }
         },
     });
 
@@ -17,13 +26,19 @@ const CameraQR = () => {
 
     const { hasPermission, requestPermission } = useCameraPermission();
 
-    
+
     useEffect(() => {
-        if(hasPermission) {
+        if (!hasPermission) {
             requestPermission();
         }
     }, [hasPermission]);
-    
+
+    // const handleRequestPermission = () => {
+    //     if (!hasPermission) {
+    //         requestPermission();
+    //     }
+    // };
+
     return (
         <View style={styles.container}>
             <Camera
@@ -32,6 +47,10 @@ const CameraQR = () => {
                 isActive={true}
                 codeScanner={codeScanner}
             />
+
+            {/* {!hasPermission && (
+                <Button onPress={handleRequestPermission} >Camera Permission</Button>
+            )} */}
         </View>
     );
 };

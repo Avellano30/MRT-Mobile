@@ -15,7 +15,7 @@ const Stack = createNativeStackNavigator();
 function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Main">
+      <Stack.Navigator initialRouteName="Pin">
         <Stack.Screen name="Main" component={Main} options={{ headerShown: false }} />
         <Stack.Screen name="AddCard" component={AddCard} options={{ headerShown: false }} />
         <Stack.Screen name="Cards" component={Cards} options={{ headerShown: false }} />

@@ -1,12 +1,13 @@
 import Clipboard from '@react-native-clipboard/clipboard';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { ScrollView, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, Dimensions, ScrollView, TouchableWithoutFeedback, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { Appbar, Button, Card, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface BeepTransaction {
     fare: number | null;
@@ -32,13 +33,18 @@ const Cards = () => {
     // 'https://mrt-system-be-1qvh.onrender.com'
     // 'http://localhost:8080'
     const apiUrl = 'http://localhost:8080';
+    
+    const screenWidth = Dimensions.get('window').width;
 
     const navigation = useNavigation();
 
     const _goAdd = () => navigation.navigate('AddCard' as never);
-    const _handleMore = () => console.log('Shown more');
+    const _handleMore = () => navigation.navigate('AddCard' as never);
+
     const [cardClick, setCardClick] = useState<Number | null>(null);
     const [cards, setCards] = useState<BeepCard[]>([]);
+    const [favoriteCard, setFavoriteCard] = useState<String | null>('');
+
     const isFocused = useIsFocused();
 
     const handleCardClick = (cardId: number) => {
@@ -49,7 +55,18 @@ const Cards = () => {
         }
     }
 
+    const handleLongPress = async (cardId: number) => {
+          try {
+            await AsyncStorage.setItem('favoriteCard', String(cardId));
+            const savedFavCard = await AsyncStorage.getItem('favoriteCard');
+            setFavoriteCard(savedFavCard);
+            Alert.alert('Success', 'Favorite Card set successfully');
+          } catch (error) {
+            Alert.alert('Error', 'Failed to set as favorite card');
+          }
+    }
     const [deviceID, setDeviceID] = useState('');
+
     DeviceInfo.getUniqueId().then((uniqueId) => {
         setDeviceID(uniqueId);
     });
@@ -66,6 +83,7 @@ const Cards = () => {
 
             setCards(data);
 
+            
         } catch (error) {
             console.log(error);
         }
@@ -106,8 +124,11 @@ const Cards = () => {
                     <View style={{ marginBottom: 15 }} />
 
                     {cards && cards.map((card, index) => (
-                        <Card key={card.cardId} style={{ marginLeft: 15, marginRight: 15, marginBottom: 5, backgroundColor: 'white' }} onPress={() => handleCardClick(card.cardId)}>
+                        <Card key={card.cardId} style={{ marginLeft: 15, marginRight: 15, marginBottom: 5, backgroundColor: 'white' }} onPress={() => handleCardClick(card.cardId)} onLongPress={() => handleLongPress(card.cardId)}>
                             <Card.Content style={{ position: 'absolute', marginLeft: 5, marginTop: 5, zIndex: 50 }}>
+                                {favoriteCard === String(card.cardId) && (
+                                    <Icon name="star" size={20} color={'darkorange'} style={{ position: 'absolute', zIndex: 100, top: 15, right: -50}}/>
+                                )}
                                 <TouchableWithoutFeedback onLongPress={() => Clipboard.setString(card.cardId.toString())}>
                                     <Text style={{ color: 'white', fontSize: 24, fontWeight: '700' }}>{card.cardId}</Text>
                                 </TouchableWithoutFeedback>
@@ -151,15 +172,15 @@ const Cards = () => {
                         </Card>
                     ))}
 
-                    <Card style={{ borderStyle: 'dashed', borderColor: 'black', borderWidth: 2, marginLeft: 15, marginRight: 15, marginBottom: 15 }}>
+                    <Card style={{ borderStyle: 'dashed', borderColor: 'black', borderWidth: 1, marginLeft: 15, marginRight: 15, marginBottom: 15, overflow: 'hidden' }}>
                         <Card.Content style={{ zIndex: 50 }}>
                             <Text style={{ fontSize: 18, fontWeight: '700', textAlign: 'center' }}>Add a card™</Text>
-                            <Text style={{ fontWeight: '300', fontSize: 11, textAlign: 'center', marginTop: 5 }}>The card number is found at the back of your card™</Text>
+                            <Text style={{ fontWeight: '300', fontSize: 11, textAlign: 'center', marginTop: 5, color: '#3b3b3b' }}>The card number is found at the back of your card™</Text>
                             <Card.Actions>
-                                <Button textColor='white' style={{ backgroundColor: '#0e1c43', marginLeft: 'auto', marginRight: 'auto', marginVertical: 15 }} onPress={_goAdd}>Add card</Button>
+                                <Button textColor='white' style={{ backgroundColor: '#0e1c43', marginLeft: 'auto', marginRight: 'auto', marginVertical: 15, borderRadius: 10 }} onPress={_goAdd}>Add card</Button>
                             </Card.Actions>
                         </Card.Content>
-                        <View style={{ position: 'absolute', height: 148, width: 358, backgroundColor: '#c1e1ec', borderRadius: 10 }} />
+                        <View style={{ position: 'absolute', height: 150, width: screenWidth, backgroundColor: '#c1e1ec', borderRadius: 10 }} />
                     </Card>
                 </ScrollView>
             </SafeAreaView>

@@ -15,10 +15,17 @@ const PasscodeInput: React.FC<PasscodeInputProps> = ({ value, onChange }) => {
     newPasscode[index] = text;
     setPasscode(newPasscode);
 
-    if (text.length === 0 && index > 0) {
+    if (text.length > 0 && index < 6) {
+      if (index === 5 || newPasscode[index + 1] !== '') {
+        // If the current box is the last box or the next box is already filled, focus remains on the current box
+        refs[index].current?.focus();
+      } else {
+        // Move focus to the next box
+        refs[index + 1].current?.focus();
+      }
+    } else if (text.length === 0 && index > 0) {
+      // If the current box is empty, move focus to the previous box
       refs[index - 1].current?.focus();
-    } else if (text.length > 0 && index < 5) {
-      refs[index + 1].current?.focus();
     }
 
     // Combine the passcode array into a single string and update the parent component
@@ -57,14 +64,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   box: {
-    borderWidth: 1,
-    borderColor: '#333',
-    width: 40,
-    height: 40,
+    borderColor: '#f0f0f0',
+    width: 45,
+    height: 45,
     margin: 5,
     textAlign: 'center',
     fontSize: 20,
+    fontWeight: 'bold',
     borderRadius: 5,
+    backgroundColor: '#f0f0f0',
   },
 });
 
