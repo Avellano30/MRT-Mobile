@@ -1,5 +1,5 @@
 import Clipboard from '@react-native-clipboard/clipboard';
-import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
+import { ParamListBase, useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { Alert, Dimensions, ScrollView, TouchableWithoutFeedback, View } from 'react-native';
@@ -7,7 +7,8 @@ import DeviceInfo from 'react-native-device-info';
 import { Appbar, Button, Card, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { storage } from '../../login'
 
 interface BeepTransaction {
     fare: number | null;
@@ -32,14 +33,15 @@ interface BeepCard extends Document {
 const Cards = () => {
     // 'https://mrt-system-be-1qvh.onrender.com'
     // 'http://localhost:8080'
-    const apiUrl = 'http://localhost:8080';
+    // 'http://10.200.53.141:8080'
+    const apiUrl = 'https://mrt-system-be-1qvh.onrender.com';
     
     const screenWidth = Dimensions.get('window').width;
 
-    const navigation = useNavigation();
+    const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
 
-    const _goAdd = () => navigation.navigate('AddCard' as never);
-    const _handleMore = () => navigation.navigate('AddCard' as never);
+    const _goAdd = () => navigation.navigate('AddCard');
+    const _handleMore = () => navigation.navigate('AddCard');
 
     const [cardClick, setCardClick] = useState<Number | null>(null);
     const [cards, setCards] = useState<BeepCard[]>([]);
@@ -55,11 +57,11 @@ const Cards = () => {
         }
     }
 
-    const handleLongPress = async (cardId: number) => {
+    const handleLongPress = (cardId: number) => {
           try {
-            await AsyncStorage.setItem('favoriteCard', String(cardId));
-            const savedFavCard = await AsyncStorage.getItem('favoriteCard');
-            setFavoriteCard(savedFavCard);
+            storage.set('favoriteCard', String(cardId));
+            const savedFavCard = storage.getString('favoriteCard');
+            setFavoriteCard(String(savedFavCard));
             Alert.alert('Success', 'Favorite Card set successfully');
           } catch (error) {
             Alert.alert('Error', 'Failed to set as favorite card');
@@ -92,6 +94,9 @@ const Cards = () => {
     useEffect(() => {
         if (deviceID) {
             fetchCards();
+
+            const savedFavCard = storage.getString('favoriteCard');
+            setFavoriteCard(String(savedFavCard));
         }
     }, [isFocused, deviceID])
 
@@ -138,7 +143,7 @@ const Cards = () => {
                                 </Text>
                                 <Text style={{ color: 'white', fontSize: 30, fontWeight: '900' }}>₱{card.balance}.00</Text>
                             </Card.Content>
-                            <Card.Cover source={require('../assets/card.png')} style={{ zIndex: 0, borderColor: '#0e1c43', height: 180 }} />
+                            <Card.Cover source={require('../../../assets/card.png')} style={{ zIndex: 0, borderColor: '#0e1c43', height: 180 }} />
                             <View style={{ position: 'absolute', backgroundColor: 'rgba(0,0,0,0.3)', height: 180, borderRadius: 10, top: 0, left: 0, right: 0, bottom: 0 }} />
 
                             {cardClick === card.cardId && card.transactions.length > 0 && (

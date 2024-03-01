@@ -1,4 +1,5 @@
-import { useNavigation } from '@react-navigation/native';
+import { ParamListBase, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
@@ -9,10 +10,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const AddCard = () => {
     // 'https://mrt-system-be-1qvh.onrender.com'
     // 'http://localhost:8080'
-    const apiUrl = 'http://localhost:8080';
-    const navigation = useNavigation();
+    const apiUrl = 'https://mrt-system-be-1qvh.onrender.com';
+    
+    const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
 
-    const _goBack = () => navigation.navigate('Main' as never);
+    const _goBack = () => navigation.navigate('Main');
 
     const [customValue, setCustomValue] = useState('637805');
     const [deviceID, setDeviceID] = useState('');
@@ -41,7 +43,7 @@ const AddCard = () => {
                 throw new Error("Card Link Failed");
             }
 
-            navigation.navigate('Main' as never);
+            navigation.navigate('Main');
         } catch (error) {
             console.error(error); // Handle error
         }

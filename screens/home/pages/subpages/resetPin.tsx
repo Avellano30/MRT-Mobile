@@ -2,30 +2,31 @@ import React, { useState } from 'react';
 import { withExpoSnack, styled } from 'nativewind';
 import { View, Alert } from 'react-native';
 import { Appbar, Button, Text } from 'react-native-paper';
-import PasscodeInput from '../components/passcode';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { ParamListBase, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import PinCodeInput from 'react-native-smooth-pincode-input';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { storage } from '../../../login';
 
 const Pin = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+  
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
-  const navigation = useNavigation();
 
   const _goBack = () => navigation.goBack();
 
-  const handleSavePin = async () => {
+  const handleSavePin = () => {
     if (pin !== confirmPin) {
       Alert.alert('Error', 'PINs do not match');
       return;
     }
 
     try {
-      await AsyncStorage.setItem('pin', pin);
+      storage.set('pin', pin);
       Alert.alert('Success', 'PIN saved successfully');
-      navigation.navigate('Login' as never);
+      navigation.navigate('Login');
     } catch (error) {
       Alert.alert('Error', 'Failed to save PIN');
     }

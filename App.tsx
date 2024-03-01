@@ -1,29 +1,41 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import NewStart from './screens';
+import CreatePin from './screens/createPin';
 import Login from './screens/login';
+import Main from './screens/home/index';
 import Home from './screens/home';
-import Main from './screens/index';
-import Pin from './screens/newPin';
-import AddCard from './screens/addCard';
-import Cards from './screens/cards';
-import CameraQR from './screens/camera';
-
+import Cards from './screens/home/pages/cards';
+import CameraQR from './screens/home/pages/camera';
+import Settings from './screens/home/pages/settings';
+import AddCard from './screens/home/pages/subpages/addCard';
+import ResetPin from './screens/home/pages/subpages/resetPin';
 
 const Stack = createNativeStackNavigator();
 
 function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Pin">
-        <Stack.Screen name="Main" component={Main} options={{ headerShown: false }} />
-        <Stack.Screen name="AddCard" component={AddCard} options={{ headerShown: false }} />
-        <Stack.Screen name="Cards" component={Cards} options={{ headerShown: false }} />
-        <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
-        <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-        <Stack.Screen name="Pin" component={Pin} options={{ headerShown: false }} />
+      <Stack.Navigator initialRouteName="Main">
+        
+        {/* New Installed App */}
+        <Stack.Screen name="NewStart" component={NewStart} options={{ headerShown: false }} />
+        <Stack.Screen name="CreatePin" component={CreatePin} options={{ headerShown: false }} />
 
+        {/* Start Page */}
+        <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+        <Stack.Screen name="Main" component={Main} options={{ headerShown: false }} />
+
+        {/* Main Page  */}
+        <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
+        <Stack.Screen name="Cards" component={Cards} options={{ headerShown: false }} />
         <Stack.Screen name="CameraQR" component={CameraQR} options={{ headerShown: false }} />
+        <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
+
+        {/* Sub Page */}
+        <Stack.Screen name="AddCard" component={AddCard} options={{ headerShown: false }} />
+        <Stack.Screen name="ResetPin" component={ResetPin} options={{ headerShown: false }} />
 
       </Stack.Navigator>
     </NavigationContainer>

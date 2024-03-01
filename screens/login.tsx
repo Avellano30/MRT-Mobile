@@ -1,35 +1,60 @@
-import React, { useState } from 'react';
-import { View, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Alert, BackHandler, Image } from 'react-native';
 import { Button, Text } from 'react-native-paper';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { ParamListBase, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PinCodeInput from 'react-native-smooth-pincode-input';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { MMKV } from 'react-native-mmkv'
+
+export const storage = new MMKV();
 
 const Login = () => {
-  const [pin, setPin] = useState('');
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
 
-  const handleLogin = async () => {
-    try {
-      const savedPin = await AsyncStorage.getItem('pin');
-      if (savedPin === pin) {
-        // PIN matches, navigate to the main screen
-        navigation.navigate('Home' as never);
-      } else {
-        Alert.alert('Error', 'Invalid PIN');
+  const [pin, setPin] = useState('');
+
+  if(pin.length === 6){
+    const handleLogin = () => {
+      try {
+        const savedPin = storage.getString('pin');
+        if (savedPin === pin) {
+          // PIN matches, navigate to the main screen
+          navigation.navigate('Main');
+        } else {
+          Alert.alert('Error', 'Invalid PIN');
+        }
+      } catch (error) {
+        console.error(error);
+        Alert.alert('Error', 'Failed to authenticate');
       }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Failed to authenticate');
-    }
-  };
+    };
+    
+    handleLogin();
+  }
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      return true; // Prevent default behavior
+    });
+
+    return () => backHandler.remove();
+  }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ fontSize: 28, fontWeight: '900', color: 'black', textAlign: 'center' }}>Welcome back!</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'flex-start' }}>
+      <View style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+        <Image source={require('../assets/logo.png')}
+          style={{
+            height: 250,
+            width: 200,
+            resizeMode: 'contain',
+          }} />
+      </View>
+      
+      <Text style={{ fontSize: 28, fontWeight: '900', color: 'black', textAlign: 'center' }}>Welcome!</Text>
 
-      <Text style={{ textAlign: 'center', color: 'black', marginBottom: 50, marginTop: 10 }}>Enter new 6-digit passcode</Text>
+      <Text style={{ textAlign: 'center', color: 'black', marginBottom: 50, marginTop: 10 }}>Enter your 6-digit passcode</Text>
 
       <View style={{ alignItems: 'center' }}>
         <PinCodeInput
@@ -50,10 +75,6 @@ const Login = () => {
           restrictToNumbers={true}
         />
       </View>
-
-      {pin.length === 6 && (
-        <Button onPress={handleLogin} style={{ borderRadius: 10, marginTop: 50, marginHorizontal: 40 }} buttonColor='#0e1c43' textColor='white'>Confirm</Button>
-      )}
     </SafeAreaView>
   );
 }
