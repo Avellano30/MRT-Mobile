@@ -11,13 +11,14 @@ import CameraQR from './screens/home/pages/camera';
 import Settings from './screens/home/pages/settings';
 import AddCard from './screens/home/pages/subpages/addCard';
 import ResetPin from './screens/home/pages/subpages/resetPin';
+import ScanOutput from './screens/home/pages/subpages/scanOutput';
 
 const Stack = createNativeStackNavigator();
 
 function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Main">
+      <Stack.Navigator initialRouteName="Login">
         
         {/* New Installed App */}
         <Stack.Screen name="NewStart" component={NewStart} options={{ headerShown: false }} />
@@ -36,6 +37,7 @@ function App() {
         {/* Sub Page */}
         <Stack.Screen name="AddCard" component={AddCard} options={{ headerShown: false }} />
         <Stack.Screen name="ResetPin" component={ResetPin} options={{ headerShown: false }} />
+        <Stack.Screen name="ScanOutput" component={ScanOutput} options={{ headerShown: false }} />
 
       </Stack.Navigator>
     </NavigationContainer>

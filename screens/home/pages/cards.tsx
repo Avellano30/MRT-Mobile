@@ -132,7 +132,7 @@ const Cards = () => {
                         <Card key={card.cardId} style={{ marginLeft: 15, marginRight: 15, marginBottom: 5, backgroundColor: 'white' }} onPress={() => handleCardClick(card.cardId)} onLongPress={() => handleLongPress(card.cardId)}>
                             <Card.Content style={{ position: 'absolute', marginLeft: 5, marginTop: 5, zIndex: 50 }}>
                                 {favoriteCard === String(card.cardId) && (
-                                    <Icon name="star" size={20} color={'darkorange'} style={{ position: 'absolute', zIndex: 100, top: 15, right: -50}}/>
+                                    <Icon name="star" size={20} color={'darkorange'} style={{ position: 'absolute', zIndex: 100, top: 15, right: -70}}/>
                                 )}
                                 <TouchableWithoutFeedback onLongPress={() => Clipboard.setString(card.cardId.toString())}>
                                     <Text style={{ color: 'white', fontSize: 24, fontWeight: '700' }}>{card.cardId}</Text>
@@ -148,9 +148,9 @@ const Cards = () => {
 
                             {cardClick === card.cardId && card.transactions.length > 0 && (
                                 <Card.Content style={{ marginLeft: 5, marginVertical: 15 }}>
-                                    <Text style={{ fontSize: 17, fontWeight: 'bold' }}>Latest Transaction ({card.transactions.length})</Text>
+                                    <Text style={{ fontSize: 17, fontWeight: 'bold' }}>Latest Transaction ({card.transactions.slice(-5).reverse().filter(transaction => transaction.tapOut?.date).length})</Text>
                                     <Text style={{ fontSize: 12 }}>as of {formattedDate(card.transactions[card.transactions.length - 1].tapOut?.date ?? new Date().toISOString())}</Text>
-                                    {card.transactions.slice(-5).reverse().map((transaction, index) => (
+                                    {card.transactions.slice(-5).reverse().filter(transaction => transaction.tapOut?.date).map((transaction, index) => (
                                         <View key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 15 }}>
                                             <View style={{ backgroundColor: '#cfd6dc', padding: 5, width: 40, height: 40, borderRadius: 100, alignItems: 'center', justifyContent: 'center' }}>
                                                 <Icon name="card-outline" size={25} color={'black'} />

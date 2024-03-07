@@ -14,24 +14,26 @@ const Login = () => {
 
   const [pin, setPin] = useState('');
 
-  if(pin.length === 6){
-    const handleLogin = () => {
-      try {
-        const savedPin = storage.getString('pin');
-        if (savedPin === pin) {
-          // PIN matches, navigate to the main screen
-          navigation.navigate('Main');
-        } else {
-          Alert.alert('Error', 'Invalid PIN');
+  useEffect(() => {
+    if (pin.length === 6) {
+      const handleLogin = async () => {
+        try {
+          const savedPin = storage.getString('pin');
+          if (savedPin === pin) {
+            navigation.navigate('Main');
+          } else {
+            Alert.alert('Error', 'Invalid PIN');
+          }
+        } catch (error) {
+          console.error(error);
+          Alert.alert('Error', 'Failed to authenticate');
         }
-      } catch (error) {
-        console.error(error);
-        Alert.alert('Error', 'Failed to authenticate');
-      }
-    };
-    
-    handleLogin();
-  }
+      };
+      
+      setPin('');
+      handleLogin();
+    }
+  }, [pin, navigation]);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {

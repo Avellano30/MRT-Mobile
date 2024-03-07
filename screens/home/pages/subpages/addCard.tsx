@@ -14,7 +14,7 @@ const AddCard = () => {
     
     const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
 
-    const _goBack = () => navigation.navigate('Main');
+    const _goBack = () => navigation.navigate('Main', { index: 1 });
 
     const [customValue, setCustomValue] = useState('637805');
     const [deviceID, setDeviceID] = useState('');

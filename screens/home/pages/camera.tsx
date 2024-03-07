@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { ParamListBase, useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import { Appbar, Button, Text } from 'react-native-paper';
@@ -6,35 +6,36 @@ import { Camera, Code, useCameraDevice, useCameraPermission, useCodeScanner } fr
 import { storage } from '../../login';
 import io from 'socket.io-client';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const CameraQR = () => {
     const device = useCameraDevice('back');
-    const navigation = useNavigation();
-    const [qrCode, setQrCode] = useState<Code>();
+    const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+    // const [qrCode, setQrCode] = useState<Code>();
+    const [isCodeScanned, setIsCodeScanned] = React.useState(false);
 
+    console.log(isCodeScanned);
     const codeScanner = useCodeScanner({
         codeTypes: ['qr', 'ean-13'],
         onCodeScanned: (codes) => {
-            let corners = codes[0].corners;
+            if (!isCodeScanned && codes.length > 0) {
+                const corners = codes[0].corners;
 
-            if (corners![0].x >= 477 && corners![0].y >= 318 &&
-                corners![1].x <= 808 && corners![1].y >= 320 &&
-                corners![2].x <= 806 && corners![2].y <= 647 &&
-                corners![3].x >= 479 && corners![3].y <= 649
-              ) {
-                if (codes[0].value === qrCode?.value) {
-                    // console.log('Scanned already');
-                    return;
-                } else {
-                    setQrCode(codes[0]);
-                    console.log(codes[0].value);
-    
+                if (corners![0].x >= 477 && corners![0].y >= 318 &&
+                    corners![1].x <= 808 && corners![1].y >= 320 &&
+                    corners![2].x <= 806 && corners![2].y <= 647 &&
+                    corners![3].x >= 479 && corners![3].y <= 649
+                ) {
+                    console.log('QR Value: ', codes[0].value);
+
                     const savedFavCard = storage.getString('favoriteCard');
                     sendQRCodeDataToWeb(savedFavCard);
+
+                    navigation.navigate('ScanOutput', { message: 'Tap Successfully'});
+
+                    setIsCodeScanned(true);
                 }
-              }
-            
-            // console.log(codes[0].corners)
+            }
         },
     });
 
@@ -49,7 +50,7 @@ const CameraQR = () => {
         }
     }, [hasPermission]);
 
-    const socket = io('http://localhost:8080');
+    const socket = io('https://mrt-system-be-1qvh.onrender.com');
 
     const sendQRCodeDataToWeb = (qrCodeData: string | undefined) => {
         socket.emit('message', qrCodeData);
@@ -63,6 +64,15 @@ const CameraQR = () => {
         };
     }, []);
 
+    useFocusEffect(React.useCallback(()=>{
+        if(isCodeScanned === true) {
+            setIsCodeScanned(false);
+        }
+
+        return () => {
+                    setIsCodeScanned(false);
+                };
+      },[isCodeScanned]))
 
     return (
         <>
@@ -78,7 +88,7 @@ const CameraQR = () => {
                         codeScanner={codeScanner}
                     />
                     <View style={styles.box} >
-                        <Image source={require('../../../assets/scanbox.png')}  style= {{ height: 200, width: 200 }}/>
+                        <Image source={require('../../../assets/scanbox.png')} style={{ height: 200, width: 200 }} />
                     </View>
                 </View>
             </SafeAreaView>

@@ -6,7 +6,11 @@ import Camera from './pages/camera';
 import Settings from './pages/settings';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { TouchableHighlight, View } from 'react-native';
+import { RouteProp, useFocusEffect } from '@react-navigation/native';
 
+type Props = {
+  route: RouteProp<any, any>;
+};
 
 const HomeRoute = () => <Home />;
 const CardsRoute = () => <Cards />;
@@ -14,8 +18,14 @@ const CameraRoute = () => <Camera />;
 const TransactionsRoute = () => <Text>Transactions</Text>;
 const SettingsRoute = () => <Settings />;
 
-const Main = () => {
+const Main = ({route}: Props) => {
   const [index, setIndex] = React.useState(0);
+  const indexParam = route.params && route.params.index !== undefined ? route.params.index : 0;
+  
+  useFocusEffect(React.useCallback(()=>{
+    setIndex(indexParam);
+  },[indexParam]))
+
   const [routes] = React.useState([
     { key: 'home', title: 'Home', focusedIcon: 'home', unfocusedIcon: 'home-outline' },
     { key: 'cards', title: 'Cards', focusedIcon: 'card-multiple', unfocusedIcon: 'card-multiple-outline' },
