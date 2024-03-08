@@ -8,13 +8,13 @@ import io from 'socket.io-client';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+// https://mrt-system-be-1qvh.onrender.com - http://localhost:8080
 const CameraQR = () => {
     const device = useCameraDevice('back');
     const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
     // const [qrCode, setQrCode] = useState<Code>();
     const [isCodeScanned, setIsCodeScanned] = React.useState(false);
-
-    console.log(isCodeScanned);
+    const socket = io('https://mrt-system-be-1qvh.onrender.com');
     const codeScanner = useCodeScanner({
         codeTypes: ['qr', 'ean-13'],
         onCodeScanned: (codes) => {
@@ -27,13 +27,14 @@ const CameraQR = () => {
                     corners![3].x >= 479 && corners![3].y <= 649
                 ) {
                     console.log('QR Value: ', codes[0].value);
-
+                    const connectionId = codes[0].value;
+                    socket.emit('joinRoom', connectionId);
+                    
                     const savedFavCard = storage.getString('favoriteCard');
-                    sendQRCodeDataToWeb(savedFavCard);
-
-                    navigation.navigate('ScanOutput', { message: 'Tap Successfully'});
+                    socket.emit('privateMessage', connectionId, savedFavCard);
 
                     setIsCodeScanned(true);
+                    navigation.navigate('ScanOutput', { message: 'Tap Successfully'});
                 }
             }
         },
@@ -49,12 +50,6 @@ const CameraQR = () => {
             requestPermission();
         }
     }, [hasPermission]);
-
-    const socket = io('https://mrt-system-be-1qvh.onrender.com');
-
-    const sendQRCodeDataToWeb = (qrCodeData: string | undefined) => {
-        socket.emit('message', qrCodeData);
-    };
 
     useEffect(() => {
         socket.connect();
