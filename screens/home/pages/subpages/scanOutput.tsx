@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Alert, BackHandler, Image } from 'react-native';
+import { View, Alert, BackHandler, Image, AppStateStatus, AppState } from 'react-native';
 import { Appbar, Button, Text } from 'react-native-paper';
-import { ParamListBase, useNavigation } from '@react-navigation/native';
+import { ParamListBase, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -11,6 +11,30 @@ const ScanOutput = ({ route }: any) => {
     const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
 
     const _goBack = () => navigation.navigate('Main', { index: 0 });
+
+    useFocusEffect(() => {
+        // Subscribe to app state changes
+        const handleAppStateChange = (nextAppState: AppStateStatus) => {
+            navigation.navigate('Login');
+            if (nextAppState === 'background') {
+                // Close the app when it goes into the background
+                BackHandler.exitApp();
+            }
+        };
+
+        // Subscribe to app state changes
+        const subscription = AppState.addEventListener(
+            'change',
+            handleAppStateChange,
+        );
+
+        // Clean up function to remove event listener
+        return () => {
+            // Remove the event listener subscription
+            subscription.remove();
+        };
+    });
+
 
     return (
         <>

@@ -1,8 +1,8 @@
-import { ParamListBase, useNavigation } from '@react-navigation/native';
+import { ParamListBase, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { BackHandler, View } from 'react-native';
+import { AppState, AppStateStatus, BackHandler, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { Appbar, Button, Text, TextInput } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -68,6 +68,30 @@ const AddCard = () => {
 
         return () => backHandler.remove();
     }, []);
+
+    useFocusEffect(() => {
+        // Subscribe to app state changes
+        const handleAppStateChange = (nextAppState: AppStateStatus) => {
+            navigation.navigate('Login');
+            if (nextAppState === 'background') {
+                // Close the app when it goes into the background
+                BackHandler.exitApp();
+            }
+        };
+
+        // Subscribe to app state changes
+        const subscription = AppState.addEventListener(
+            'change',
+            handleAppStateChange,
+        );
+
+        // Clean up function to remove event listener
+        return () => {
+            // Remove the event listener subscription
+            subscription.remove();
+        };
+    });
+
     return (
         <>
             <SafeAreaView style={{ backgroundColor: '#edf3ff', flex: 1 }}>
@@ -91,7 +115,7 @@ const AddCard = () => {
                     <Text style={{ marginTop: 30, marginBottom: 10 }}>Card Label (optional)</Text>
                     <TextInput style={{ backgroundColor: 'white' }} mode='outlined' outlineStyle={{ borderRadius: 10, borderColor: '#0e1c43' }} placeholder='e.g. Card' placeholderTextColor={'gray'} />
 
-                    <View style={{ marginTop: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+                    <View style={{ marginTop: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Text>Set as main card</Text>
                         <Switch value={isSwitchOn} onValueChange={onToggleSwitch} />
                     </View>

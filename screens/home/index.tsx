@@ -4,27 +4,30 @@ import Home from './pages/home';
 import Cards from './pages/cards';
 import Camera from './pages/camera';
 import Settings from './pages/settings';
+import Transactions from './pages/transactions';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { TouchableHighlight, View } from 'react-native';
-import { RouteProp, useFocusEffect } from '@react-navigation/native';
+import { AppState, AppStateStatus, BackHandler, TouchableHighlight, View } from 'react-native';
+import { NavigationProp, RouteProp, useFocusEffect } from '@react-navigation/native';
+import UserInactivity from 'react-native-user-detector-active-inactive';
 
 type Props = {
   route: RouteProp<any, any>;
+  navigation: NavigationProp<any>;
 };
 
 const HomeRoute = () => <Home />;
 const CardsRoute = () => <Cards />;
 const CameraRoute = () => <Camera />;
-const TransactionsRoute = () => <Text>Transactions</Text>;
+const TransactionsRoute = () => <Transactions />;
 const SettingsRoute = () => <Settings />;
 
-const Main = ({route}: Props) => {
+const Main = ({ route, navigation }: Props) => {
   const [index, setIndex] = React.useState(0);
   const indexParam = route.params && route.params.index !== undefined ? route.params.index : 0;
-  
-  useFocusEffect(React.useCallback(()=>{
+
+  useFocusEffect(React.useCallback(() => {
     setIndex(indexParam);
-  },[indexParam]))
+  }, [indexParam]))
 
   const [routes] = React.useState([
     { key: 'home', title: 'Home', focusedIcon: 'home', unfocusedIcon: 'home-outline' },
@@ -42,8 +45,47 @@ const Main = ({route}: Props) => {
     settings: SettingsRoute,
   });
 
+  const handleActiveInactive = () => {
+    navigation.navigate('Login');
+  };
+
+  const [resetTimer, setResetTimer] = React.useState(0);
+
+  React.useEffect(() => {
+    setResetTimer(prev => prev + 1);
+  }, [index]);
+
+  useFocusEffect(() => {
+    // Subscribe to app state changes
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      navigation.navigate('Login');
+      if (nextAppState === 'background') {
+        // Close the app when it goes into the background
+        BackHandler.exitApp();
+      }
+    };
+ 
+    // Subscribe to app state changes
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+ 
+    // Clean up function to remove event listener
+    return () => {
+      // Remove the event listener subscription
+      subscription.remove();
+    };
+  });
+  
   return (
-    <>
+    <UserInactivity
+      key={resetTimer}
+      timeForInactivity={60}
+      skipKeyboard={true}
+      onHandleActiveInactive={handleActiveInactive}
+      style={{ flex: 1 }}
+    >
       <BottomNavigation
         navigationState={{ index, routes }}
         onIndexChange={setIndex}
@@ -68,8 +110,7 @@ const Main = ({route}: Props) => {
           <Icon name='qr-code' size={20} color={'#0e1c43'} />
         </TouchableHighlight>
       </View>
-
-    </>
+    </UserInactivity>
   );
 };
 

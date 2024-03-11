@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { withExpoSnack, styled } from 'nativewind';
-import { View, Alert } from 'react-native';
+import { View, Alert, BackHandler, AppStateStatus, AppState } from 'react-native';
 import { Appbar, Button, Text } from 'react-native-paper';
-import { ParamListBase, useNavigation } from '@react-navigation/native';
+import { ParamListBase, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import PinCodeInput from 'react-native-smooth-pincode-input';
@@ -11,7 +11,7 @@ import { storage } from '../../../login';
 
 const Pin = () => {
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
-  
+
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
 
@@ -32,6 +32,28 @@ const Pin = () => {
     }
   };
 
+  useFocusEffect(() => {
+    // Subscribe to app state changes
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      navigation.navigate('Login');
+      if (nextAppState === 'background') {
+        // Close the app when it goes into the background
+        BackHandler.exitApp();
+      }
+    };
+
+    // Subscribe to app state changes
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+
+    // Clean up function to remove event listener
+    return () => {
+      // Remove the event listener subscription
+      subscription.remove();
+    };
+  });
   return (
     <SafeAreaView style={{ backgroundColor: 'white', flex: 1 }}>
       <Appbar.Header mode='center-aligned' style={{ backgroundColor: 'white', height: 50 }} statusBarHeight={0}>

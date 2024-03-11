@@ -1,6 +1,6 @@
-import { ParamListBase, useFocusEffect, useNavigation } from '@react-navigation/native';
+import { ParamListBase, useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, BackHandler } from 'react-native';
 import { Appbar, Button, Text } from 'react-native-paper';
 import { Camera, Code, useCameraDevice, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
 import { storage } from '../../login';
@@ -10,11 +10,12 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 // https://mrt-system-be-1qvh.onrender.com - http://localhost:8080
 const CameraQR = () => {
+    const socket = io('https://mrt-system-be-1qvh.onrender.com');
     const device = useCameraDevice('back');
     const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
-    // const [qrCode, setQrCode] = useState<Code>();
+
     const [isCodeScanned, setIsCodeScanned] = React.useState(false);
-    const socket = io('https://mrt-system-be-1qvh.onrender.com');
+
     const codeScanner = useCodeScanner({
         codeTypes: ['qr', 'ean-13'],
         onCodeScanned: (codes) => {
@@ -51,12 +52,11 @@ const CameraQR = () => {
 
     const { hasPermission, requestPermission } = useCameraPermission();
 
-
     useEffect(() => {
         if (!hasPermission) {
             requestPermission();
         }
-    }, [hasPermission]);
+    }, [hasPermission, requestPermission]);
 
     useEffect(() => {
         socket.connect();
@@ -76,10 +76,21 @@ const CameraQR = () => {
         };
     }, [isCodeScanned]))
 
+    const _goBack = () => navigation.navigate('Main', { index: 0 });
+
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            _goBack();
+            return true;
+        });
+
+        return () => backHandler.remove();
+    }, []);
     return (
         <>
             <SafeAreaView style={{ flex: 1 }}>
                 <Appbar.Header mode='center-aligned' style={{ backgroundColor: '#0e1c43', height: 50 }} statusBarHeight={0}>
+                    <Appbar.BackAction onPress={_goBack} color='white' />
                     <Appbar.Content title="QR Reader" titleStyle={{ fontWeight: '900', color: 'white', fontSize: 18 }} />
                 </Appbar.Header>
                 <View style={styles.container}>
@@ -96,7 +107,6 @@ const CameraQR = () => {
                     </View>
                 </View>
             </SafeAreaView>
-
         </>
 
     );

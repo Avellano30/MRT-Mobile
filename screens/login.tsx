@@ -20,7 +20,7 @@ const Login = () => {
         try {
           const savedPin = storage.getString('pin');
           if (savedPin === pin) {
-            navigation.navigate('Main');
+            navigation.navigate('Main', { index: 0});
           } else {
             Alert.alert('Error', 'Invalid PIN');
           }

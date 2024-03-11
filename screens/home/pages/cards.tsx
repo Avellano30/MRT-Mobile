@@ -2,12 +2,13 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { ParamListBase, useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { Alert, Dimensions, ScrollView, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, Dimensions, ScrollView, TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { Appbar, Button, Card, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Swipeable from 'react-native-swipeable';
 import { storage } from '../../login'
 
 interface BeepTransaction {
@@ -89,6 +90,51 @@ const Cards = () => {
         }
     };
 
+    const unlinkCard = async (cardId: any) => {
+        try {
+            const updateDeviceID = await fetch(`${apiUrl}/mobile/card/${cardId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ deviceID: null }),
+            });
+
+            if (!updateDeviceID.ok) {
+                throw new Error("Card Unlink Failed");
+            }
+
+            fetchCards();
+        } catch (error) {
+            console.error(error); // Handle error
+        }
+    };
+
+    const renderSwipeableButtons = (cardId: number, index: number) => {
+        return [
+            <View>
+                <TouchableHighlight
+                    key={`view-${index}`}
+                    onPress={() => {
+                        navigation.navigate('Main', {index: 3})
+                    }}
+                    underlayColor="#dddddd"
+                    style={{ backgroundColor: 'darkgray', justifyContent: 'center', paddingLeft: 30, height: 90, borderRadius: 10 }}
+                >
+                    <Icon name="eye" color={'black'} size={20} />
+                </TouchableHighlight>
+                <TouchableHighlight
+                    key={`delete-${index}`}
+                    onPress={() => unlinkCard(cardId)}
+                    underlayColor="#dddddd"
+                    style={{ backgroundColor: '#FF3B30', justifyContent: 'center', paddingLeft: 30, height: 90, borderRadius: 10 }}
+                >
+                    <Icon name='trash' color={'white'} size={20} />
+                </TouchableHighlight>
+            </View>
+        ];
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             if (deviceID) {
@@ -102,10 +148,10 @@ const Cards = () => {
                 }
             }
         };
-    
+
         fetchData();
     }, [isFocused, deviceID, cards]);
-    
+
 
     const formattedDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -136,52 +182,55 @@ const Cards = () => {
                     <View style={{ marginBottom: 15 }} />
 
                     {cards && cards.map((card, index) => (
-                        <Card key={card.cardId} style={{ marginLeft: 15, marginRight: 15, marginBottom: 5, backgroundColor: 'white' }} onPress={() => handleCardClick(card.cardId)} onLongPress={() => handleLongPress(card.cardId)}>
-                            <Card.Content style={{ position: 'absolute', marginLeft: 5, marginTop: 5, zIndex: 50 }}>
-                                {mainCard === String(card.cardId) && (
-                                    <Icon name="star" size={20} color={'darkorange'} style={{ position: 'absolute', zIndex: 100, top: 15, right: -70 }} />
-                                )}
-                                <TouchableWithoutFeedback onLongPress={() => Clipboard.setString(card.cardId.toString())}>
-                                    <Text style={{ color: 'white', fontSize: 24, fontWeight: '700' }}>{card.cardId}</Text>
-                                </TouchableWithoutFeedback>
-                                <Text style={{ color: 'white', fontWeight: '300', fontSize: 11 }}>Valid Until 2026-01-30</Text>
-                                <Text style={{ color: '#b5b8bf', fontWeight: '300', fontSize: 11, marginTop: 45 }}>
-                                    Available Balance as of {formattedDate(card.transactions.length > 0 ? (card.transactions[card.transactions.length - 1].tapOut?.date ?? new Date().toISOString()) : new Date().toISOString())}
-                                </Text>
-                                <Text style={{ color: 'white', fontSize: 30, fontWeight: '900' }}>₱{card.balance}.00</Text>
-                            </Card.Content>
-                            <Card.Cover source={require('../../../assets/card.png')} style={{ zIndex: 0, borderColor: '#0e1c43', height: 180 }} />
-                            <View style={{ position: 'absolute', backgroundColor: 'rgba(0,0,0,0.3)', height: 180, borderRadius: 10, top: 0, left: 0, right: 0, bottom: 0 }} />
+                        <Swipeable rightButtons={renderSwipeableButtons(card.cardId, index)} key={index}>
+                            <Card key={card.cardId} style={{ marginLeft: 15, marginRight: 15, marginBottom: 5, backgroundColor: 'white' }} onPress={() => handleCardClick(card.cardId)} onLongPress={() => handleLongPress(card.cardId)}>
+                                <Card.Content style={{ position: 'absolute', marginLeft: 5, marginTop: 5, zIndex: 50 }}>
+                                    {mainCard === String(card.cardId) && (
+                                        <Icon name="star" size={20} color={'darkorange'} style={{ position: 'absolute', zIndex: 100, top: 15, right: -70 }} />
+                                    )}
+                                    <TouchableWithoutFeedback onLongPress={() => Clipboard.setString(card.cardId.toString())}>
+                                        <Text style={{ color: 'white', fontSize: 24, fontWeight: '700' }}>{card.cardId}</Text>
+                                    </TouchableWithoutFeedback>
+                                    <Text style={{ color: 'white', fontWeight: '300', fontSize: 11 }}>Valid Until 2026-01-30</Text>
+                                    <Text style={{ color: '#b5b8bf', fontWeight: '300', fontSize: 11, marginTop: 45 }}>
+                                        Available Balance as of {formattedDate(card.transactions.length > 0 ? (card.transactions[card.transactions.length - 1].tapOut?.date ?? new Date().toISOString()) : new Date().toISOString())}
+                                    </Text>
+                                    <Text style={{ color: 'white', fontSize: 30, fontWeight: '900' }}>₱{card.balance}.00</Text>
+                                </Card.Content>
+                                <Card.Cover source={require('../../../assets/card.png')} style={{ zIndex: 0, borderColor: '#0e1c43', height: 180 }} />
+                                <View style={{ position: 'absolute', backgroundColor: 'rgba(0,0,0,0.3)', height: 180, borderRadius: 10, top: 0, left: 0, right: 0, bottom: 0 }} />
 
-                            {cardClick === card.cardId && card.transactions.length > 0 && (
-                                <Card.Content style={{ marginLeft: 5, marginVertical: 15 }}>
-                                    <Text style={{ fontSize: 17, fontWeight: 'bold' }}>Latest Transaction ({card.transactions.slice(-5).reverse().filter(transaction => transaction.tapOut?.date).length})</Text>
-                                    <Text style={{ fontSize: 12 }}>as of {formattedDate(card.transactions[card.transactions.length - 1].tapOut?.date ?? new Date().toISOString())}</Text>
-                                    {card.transactions.slice(-5).reverse().filter(transaction => transaction.tapOut?.date).map((transaction, index) => (
-                                        <View key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 15 }}>
-                                            <View style={{ backgroundColor: '#cfd6dc', padding: 5, width: 40, height: 40, borderRadius: 100, alignItems: 'center', justifyContent: 'center' }}>
-                                                <Icon name="card-outline" size={25} color={'black'} />
-                                            </View>
-                                            <View style={{ marginLeft: 10 }}>
-                                                <Text style={{ fontSize: 15 }}>MRT3 Rail Service Provider</Text>
-                                                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: 270 }}>
-                                                    <Text style={{ fontSize: 11, color: 'gray', verticalAlign: 'bottom' }}>{transaction.tapOut?.date ? formattedDate(transaction.tapOut.date) : 'N/A'}</Text>
-                                                    <Text style={{ fontSize: 13, color: 'red', verticalAlign: 'top' }}>- ₱{transaction.fare}.00</Text>
+                                {cardClick === card.cardId && card.transactions.length > 0 && (
+                                    <Card.Content style={{ marginLeft: 5, marginVertical: 15 }}>
+                                        <Text style={{ fontSize: 17, fontWeight: 'bold' }}>Latest Transaction ({card.transactions.slice(-5).reverse().filter(transaction => transaction.tapOut?.date).length})</Text>
+                                        <Text style={{ fontSize: 12 }}>as of {formattedDate(card.transactions[card.transactions.length - 1].tapOut?.date ?? new Date().toISOString())}</Text>
+                                        {card.transactions.slice(-5).reverse().filter(transaction => transaction.tapOut?.date).map((transaction, index) => (
+                                            <View key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 15 }}>
+                                                <View style={{ backgroundColor: '#cfd6dc', padding: 5, width: 40, height: 40, borderRadius: 100, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Icon name="card-outline" size={25} color={'black'} />
+                                                </View>
+                                                <View style={{ marginLeft: 10 }}>
+                                                    <Text style={{ fontSize: 15 }}>MRT3 Rail Service Provider</Text>
+                                                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: 270 }}>
+                                                        <Text style={{ fontSize: 11, color: 'gray', verticalAlign: 'bottom' }}>{transaction.tapOut?.date ? formattedDate(transaction.tapOut.date) : 'N/A'}</Text>
+                                                        <Text style={{ fontSize: 13, color: 'red', verticalAlign: 'top' }}>- ₱{transaction.fare}.00</Text>
+                                                    </View>
                                                 </View>
                                             </View>
-                                        </View>
-                                    ))}
-                                </Card.Content>
-                            )}
+                                        ))}
+                                    </Card.Content>
+                                )}
 
-                            {cardClick === card.cardId && card.transactions.length === 0 && (
-                                <Card.Content style={{ marginLeft: 5, marginTop: 15 }}>
-                                    <Text style={{ fontSize: 17, fontWeight: 'bold' }}>Latest Transaction ({card.transactions.length})</Text>
-                                    <Text style={{ fontSize: 12 }}>as of {formattedDate(new Date().toISOString())}</Text>
-                                    <Text style={{ fontSize: 17, textAlign: 'center', marginTop: 15 }}>No transactions to display</Text>
-                                </Card.Content>
-                            )}
-                        </Card>
+                                {cardClick === card.cardId && card.transactions.length === 0 && (
+                                    <Card.Content style={{ marginLeft: 5, marginTop: 15 }}>
+                                        <Text style={{ fontSize: 17, fontWeight: 'bold' }}>Latest Transaction ({card.transactions.length})</Text>
+                                        <Text style={{ fontSize: 12 }}>as of {formattedDate(new Date().toISOString())}</Text>
+                                        <Text style={{ fontSize: 17, textAlign: 'center', marginTop: 15 }}>No transactions to display</Text>
+                                    </Card.Content>
+                                )}
+                            </Card>
+                        </Swipeable>
+
                     ))}
 
                     <Card style={{ borderStyle: 'dashed', borderColor: 'black', borderWidth: 1, marginLeft: 15, marginRight: 15, marginBottom: 15, overflow: 'hidden' }}>

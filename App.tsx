@@ -9,6 +9,7 @@ import Home from './screens/home';
 import Cards from './screens/home/pages/cards';
 import CameraQR from './screens/home/pages/camera';
 import Settings from './screens/home/pages/settings';
+import Transactions from './screens/home/pages/transactions';
 import AddCard from './screens/home/pages/subpages/addCard';
 import ResetPin from './screens/home/pages/subpages/resetPin';
 import ScanOutput from './screens/home/pages/subpages/scanOutput';
@@ -36,6 +37,7 @@ function App() {
         <Stack.Screen name="Cards" component={Cards} options={{ headerShown: false }} />
         <Stack.Screen name="CameraQR" component={CameraQR} options={{ headerShown: false }} />
         <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
+        <Stack.Screen name="Transactions" component={Transactions} options={{ headerShown: false }} />
 
         {/* Sub Page */}
         <Stack.Screen name="AddCard" component={AddCard} options={{ headerShown: false }} />
