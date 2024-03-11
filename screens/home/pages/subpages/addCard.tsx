@@ -2,22 +2,28 @@ import { ParamListBase, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { BackHandler, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { Appbar, Button, Text, TextInput } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Switch } from 'react-native-paper';
+import { storage } from '../../../login';
 
 const AddCard = () => {
     // 'https://mrt-system-be-1qvh.onrender.com'
     // 'http://localhost:8080'
     const apiUrl = 'https://mrt-system-be-1qvh.onrender.com';
-    
+
     const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
 
     const _goBack = () => navigation.navigate('Main', { index: 1 });
 
     const [customValue, setCustomValue] = useState('637805');
     const [deviceID, setDeviceID] = useState('');
+    const [isSwitchOn, setIsSwitchOn] = React.useState(false);
+
+    const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
+
     const handleChangeText = (text: string) => {
         if (text.startsWith('637805') && text.length <= 16) {
             setCustomValue(text);
@@ -28,7 +34,7 @@ const AddCard = () => {
         setDeviceID(uniqueId);
     });
 
-    
+
     const saveCard = async () => {
         try {
             const updateDeviceID = await fetch(`${apiUrl}/mobile/card/${customValue}`, {
@@ -36,19 +42,32 @@ const AddCard = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({deviceID: deviceID}),
+                body: JSON.stringify({ deviceID: deviceID }),
             });
 
             if (!updateDeviceID.ok) {
                 throw new Error("Card Link Failed");
             }
 
-            navigation.navigate('Main');
+            if (isSwitchOn) {
+                console.log('Na set!!')
+                storage.set('mainCard', String(customValue));
+            }
+
+            navigation.navigate('Main', { index: 1 });
         } catch (error) {
             console.error(error); // Handle error
         }
     };
 
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            _goBack();
+            return true;
+        });
+
+        return () => backHandler.remove();
+    }, []);
     return (
         <>
             <SafeAreaView style={{ backgroundColor: '#edf3ff', flex: 1 }}>
@@ -71,17 +90,23 @@ const AddCard = () => {
 
                     <Text style={{ marginTop: 30, marginBottom: 10 }}>Card Label (optional)</Text>
                     <TextInput style={{ backgroundColor: 'white' }} mode='outlined' outlineStyle={{ borderRadius: 10, borderColor: '#0e1c43' }} placeholder='e.g. Card' placeholderTextColor={'gray'} />
+
+                    <View style={{ marginTop: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+                        <Text>Set as main card</Text>
+                        <Switch value={isSwitchOn} onValueChange={onToggleSwitch} />
+                    </View>
+
                 </View>
 
             </SafeAreaView>
             <SafeAreaView style={{ backgroundColor: 'white' }}>
-                <Button style={{ marginHorizontal: 25, marginVertical: 10, borderRadius: 10, paddingVertical: 5 }} 
-                buttonColor='#0e1c43' 
-                textColor='white'
-                onPress={saveCard}
-            >
-                Save Card
-            </Button>
+                <Button style={{ marginHorizontal: 25, marginVertical: 10, borderRadius: 10, paddingVertical: 5 }}
+                    buttonColor='#0e1c43'
+                    textColor='white'
+                    onPress={saveCard}
+                >
+                    Save Card
+                </Button>
             </SafeAreaView>
         </>
 

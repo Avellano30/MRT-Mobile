@@ -35,7 +35,7 @@ const Cards = () => {
     // 'http://localhost:8080'
     // 'http://10.200.53.141:8080'
     const apiUrl = 'https://mrt-system-be-1qvh.onrender.com';
-    
+
     const screenWidth = Dimensions.get('window').width;
 
     const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
@@ -45,7 +45,7 @@ const Cards = () => {
 
     const [cardClick, setCardClick] = useState<Number | null>(null);
     const [cards, setCards] = useState<BeepCard[]>([]);
-    const [favoriteCard, setFavoriteCard] = useState<String | null>('');
+    const [mainCard, setMainCard] = useState<String | null>('');
 
     const isFocused = useIsFocused();
 
@@ -58,14 +58,14 @@ const Cards = () => {
     }
 
     const handleLongPress = (cardId: number) => {
-          try {
-            storage.set('favoriteCard', String(cardId));
-            const savedFavCard = storage.getString('favoriteCard');
-            setFavoriteCard(String(savedFavCard));
-            Alert.alert('Success', 'Favorite Card set successfully');
-          } catch (error) {
-            Alert.alert('Error', 'Failed to set as favorite card');
-          }
+        try {
+            storage.set('mainCard', String(cardId));
+            const savedMainCard = storage.getString('mainCard');
+            setMainCard(String(savedMainCard));
+            Alert.alert('Success', 'Main card set successfully');
+        } catch (error) {
+            Alert.alert('Error', 'Failed to set as main card');
+        }
     }
     const [deviceID, setDeviceID] = useState('');
 
@@ -82,23 +82,30 @@ const Cards = () => {
             }
 
             const data = await response.json();
-
             setCards(data);
 
-            
         } catch (error) {
             console.log(error);
         }
     };
 
     useEffect(() => {
-        if (deviceID) {
-            fetchCards();
-
-            const savedFavCard = storage.getString('favoriteCard');
-            setFavoriteCard(String(savedFavCard));
-        }
-    }, [isFocused, deviceID])
+        const fetchData = async () => {
+            if (deviceID) {
+                await fetchCards();
+                const savedMainCard = storage.getString('mainCard');
+                if (savedMainCard === undefined) {
+                    storage.set('mainCard', String(cards[0].cardId));
+                    setMainCard(String(cards[0].cardId));
+                } else {
+                    setMainCard(String(savedMainCard));
+                }
+            }
+        };
+    
+        fetchData();
+    }, [isFocused, deviceID, cards]);
+    
 
     const formattedDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -131,8 +138,8 @@ const Cards = () => {
                     {cards && cards.map((card, index) => (
                         <Card key={card.cardId} style={{ marginLeft: 15, marginRight: 15, marginBottom: 5, backgroundColor: 'white' }} onPress={() => handleCardClick(card.cardId)} onLongPress={() => handleLongPress(card.cardId)}>
                             <Card.Content style={{ position: 'absolute', marginLeft: 5, marginTop: 5, zIndex: 50 }}>
-                                {favoriteCard === String(card.cardId) && (
-                                    <Icon name="star" size={20} color={'darkorange'} style={{ position: 'absolute', zIndex: 100, top: 15, right: -70}}/>
+                                {mainCard === String(card.cardId) && (
+                                    <Icon name="star" size={20} color={'darkorange'} style={{ position: 'absolute', zIndex: 100, top: 15, right: -70 }} />
                                 )}
                                 <TouchableWithoutFeedback onLongPress={() => Clipboard.setString(card.cardId.toString())}>
                                     <Text style={{ color: 'white', fontSize: 24, fontWeight: '700' }}>{card.cardId}</Text>

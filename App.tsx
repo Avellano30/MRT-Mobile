@@ -12,13 +12,16 @@ import Settings from './screens/home/pages/settings';
 import AddCard from './screens/home/pages/subpages/addCard';
 import ResetPin from './screens/home/pages/subpages/resetPin';
 import ScanOutput from './screens/home/pages/subpages/scanOutput';
+import { MMKV } from 'react-native-mmkv'
+
+const storage = new MMKV();
 
 const Stack = createNativeStackNavigator();
 
 function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
+      <Stack.Navigator initialRouteName={storage.getString('pin') === undefined ? 'NewStart' : 'Login'}>
         
         {/* New Installed App */}
         <Stack.Screen name="NewStart" component={NewStart} options={{ headerShown: false }} />

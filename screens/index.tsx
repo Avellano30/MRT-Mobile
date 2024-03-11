@@ -29,7 +29,7 @@ const New = () => {
                 <Button style={{ marginHorizontal: 25, marginVertical: 10, borderRadius: 10, paddingVertical: 5 }} 
                 buttonColor='#0e1c43' 
                 textColor='white'
-                onPress={() => navigation.navigate('NewPin')}
+                onPress={() => navigation.navigate('CreatePin')}
             >
                 Get Started
             </Button>

@@ -21,24 +21,31 @@ const CameraQR = () => {
             if (!isCodeScanned && codes.length > 0) {
                 const corners = codes[0].corners;
 
-                if (corners![0].x >= 477 && corners![0].y >= 318 &&
-                    corners![1].x <= 808 && corners![1].y >= 320 &&
-                    corners![2].x <= 806 && corners![2].y <= 647 &&
-                    corners![3].x >= 479 && corners![3].y <= 649
+                if (corners![0].x >= 471 && corners![0].y >= 230 &&
+                    corners![1].x <= 815 && corners![1].y >= 230 &&
+                    corners![2].x <= 815 && corners![2].y <= 489 &&
+                    corners![3].x >= 471 && corners![3].y <= 489
                 ) {
                     console.log('QR Value: ', codes[0].value);
                     const connectionId = codes[0].value;
                     socket.emit('joinRoom', connectionId);
-                    
-                    const savedFavCard = storage.getString('favoriteCard');
+
+                    const savedFavCard = storage.getString('mainCard');
                     socket.emit('privateMessage', connectionId, savedFavCard);
 
                     setIsCodeScanned(true);
-                    navigation.navigate('ScanOutput', { message: 'Tap Successfully'});
                 }
             }
         },
     });
+
+    useEffect(() => {
+        socket.on('reply', (reply) => {
+            console.log(reply);
+            navigation.navigate('ScanOutput', { message: reply });
+            setIsCodeScanned(false);
+        })
+    }, [isCodeScanned === true])
 
     if (device == null) return <View style={styles.container} />;
 
@@ -59,15 +66,15 @@ const CameraQR = () => {
         };
     }, []);
 
-    useFocusEffect(React.useCallback(()=>{
-        if(isCodeScanned === true) {
+    useFocusEffect(React.useCallback(() => {
+        if (isCodeScanned === true) {
             setIsCodeScanned(false);
         }
 
         return () => {
-                    setIsCodeScanned(false);
-                };
-      },[isCodeScanned]))
+            setIsCodeScanned(false);
+        };
+    }, [isCodeScanned]))
 
     return (
         <>
@@ -76,12 +83,14 @@ const CameraQR = () => {
                     <Appbar.Content title="QR Reader" titleStyle={{ fontWeight: '900', color: 'white', fontSize: 18 }} />
                 </Appbar.Header>
                 <View style={styles.container}>
-                    <Camera
-                        style={styles.camera}
-                        device={device}
-                        isActive={true}
-                        codeScanner={codeScanner}
-                    />
+                    {device &&
+                        <Camera
+                            style={styles.camera}
+                            device={device}
+                            isActive={true}
+                            codeScanner={codeScanner}
+                        />
+                    }
                     <View style={styles.box} >
                         <Image source={require('../../../assets/scanbox.png')} style={{ height: 200, width: 200 }} />
                     </View>
