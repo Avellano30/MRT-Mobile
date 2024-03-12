@@ -44,7 +44,6 @@ const CameraQR = () => {
         socket.on('reply', (reply) => {
             console.log(reply);
             navigation.navigate('ScanOutput', { message: reply });
-            setIsCodeScanned(false);
         })
     }, [isCodeScanned === true])
 
@@ -76,7 +75,7 @@ const CameraQR = () => {
         };
     }, [isCodeScanned]))
 
-    const _goBack = () => navigation.navigate('Main', { index: 0 });
+    const _goBack = () => navigation.navigate('Main', { index: 0, name: 'Main' });
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -86,6 +85,7 @@ const CameraQR = () => {
 
         return () => backHandler.remove();
     }, []);
+    
     return (
         <>
             <SafeAreaView style={{ flex: 1 }}>

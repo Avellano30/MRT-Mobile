@@ -31,11 +31,12 @@ interface BeepCard extends Document {
     deviceID: string;
 }
 
+const apiUrl = 'https://mrt-system-be-1qvh.onrender.com';
+
 const Cards = () => {
     // 'https://mrt-system-be-1qvh.onrender.com'
     // 'http://localhost:8080'
     // 'http://10.200.53.141:8080'
-    const apiUrl = 'https://mrt-system-be-1qvh.onrender.com';
 
     const screenWidth = Dimensions.get('window').width;
 
@@ -116,6 +117,7 @@ const Cards = () => {
                 <TouchableHighlight
                     key={`view-${index}`}
                     onPress={() => {
+                        storage.set('viewCard', `${cardId}`)
                         navigation.navigate('Main', {index: 3})
                     }}
                     underlayColor="#dddddd"

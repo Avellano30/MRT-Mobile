@@ -9,6 +9,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { AppState, AppStateStatus, BackHandler, TouchableHighlight, View } from 'react-native';
 import { NavigationProp, RouteProp, useFocusEffect } from '@react-navigation/native';
 import UserInactivity from 'react-native-user-detector-active-inactive';
+import { useState } from 'react';
 
 type Props = {
   route: RouteProp<any, any>;
@@ -55,34 +56,46 @@ const Main = ({ route, navigation }: Props) => {
     setResetTimer(prev => prev + 1);
   }, [index]);
 
-  useFocusEffect(() => {
-    // Subscribe to app state changes
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+  const [appState, setAppState] = useState(AppState.currentState);
+
+  React.useEffect(() => {
+    const appInactiveHandler = () => {
       navigation.navigate('Login');
-      if (nextAppState === 'background') {
-        // Close the app when it goes into the background
-        BackHandler.exitApp();
+    };
+
+    const handleAppStateChange = (nextAppState: any) => {
+      if (appState.match(/inactive|background/) && nextAppState === 'active') {
+        appInactiveHandler();
       }
+      setAppState(nextAppState);
     };
- 
-    // Subscribe to app state changes
-    const subscription = AppState.addEventListener(
-      'change',
-      handleAppStateChange,
-    );
- 
-    // Clean up function to remove event listener
+
+    const unsubscribe = AppState.addEventListener('change', handleAppStateChange);
+
     return () => {
-      // Remove the event listener subscription
-      subscription.remove();
+      unsubscribe.remove();
     };
-  });
-  
+  }, [appState, navigation]);
+
+  const [currentScreen, setCurrentScreen] = React.useState('Main');
+
+  const handleNavigation = (screenName: string) => {
+    setCurrentScreen(screenName);
+    navigation.navigate(screenName);
+  };
+
+  useFocusEffect(() => {
+    setCurrentScreen(route.params?.name);
+  })
   return (
     <UserInactivity
       key={resetTimer}
-      timeForInactivity={60}
+      currentScreen={currentScreen}
+      timeForInactivity={560}
       skipKeyboard={true}
+      // consoleTimer={true}
+      // consoleTouchScreen={true}
+      // consoleComponentChange={true}
       onHandleActiveInactive={handleActiveInactive}
       style={{ flex: 1 }}
     >
@@ -105,7 +118,7 @@ const Main = ({ route, navigation }: Props) => {
             backgroundColor: 'white',
             padding: 15,
           }}
-          onPress={() => setIndex(2)}
+          onPress={() => handleNavigation('CameraQR')}
         >
           <Icon name='qr-code' size={20} color={'#0e1c43'} />
         </TouchableHighlight>
