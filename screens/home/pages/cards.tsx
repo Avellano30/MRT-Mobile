@@ -64,7 +64,7 @@ const Cards = () => {
             storage.set('mainCard', String(cardId));
             const savedMainCard = storage.getString('mainCard');
             setMainCard(String(savedMainCard));
-            Alert.alert('Success', 'Main card set successfully');
+            Alert.alert('Success', 'Successfully set as main card');
         } catch (error) {
             Alert.alert('Error', 'Failed to set as main card');
         }
@@ -118,7 +118,7 @@ const Cards = () => {
                     key={`view-${index}`}
                     onPress={() => {
                         storage.set('viewCard', `${cardId}`)
-                        navigation.navigate('Main', {index: 3})
+                        navigation.navigate('ViewTransaction')
                     }}
                     underlayColor="#dddddd"
                     style={{ backgroundColor: 'darkgray', justifyContent: 'center', paddingLeft: 30, height: 90, borderRadius: 10 }}

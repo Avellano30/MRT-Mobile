@@ -2,7 +2,7 @@ import { ParamListBase, useFocusEffect, useNavigation } from '@react-navigation/
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { AppState, AppStateStatus, BackHandler, View } from 'react-native';
+import { Alert, AppState, AppStateStatus, BackHandler, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { Appbar, Button, Text, TextInput } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -46,11 +46,11 @@ const AddCard = () => {
             });
 
             if (!updateDeviceID.ok) {
+                Alert.alert('Error', 'Card does not exist!')
                 throw new Error("Card Link Failed");
             }
 
             if (isSwitchOn) {
-                console.log('Na set!!')
                 storage.set('mainCard', String(customValue));
             }
 

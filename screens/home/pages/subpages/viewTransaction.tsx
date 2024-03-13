@@ -6,7 +6,7 @@ import { BackHandler, Image, ScrollView, TouchableOpacity, View } from 'react-na
 import { Appbar, BottomNavigation, Button, Card, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { storage } from '../../login';
+import { storage } from '../../../login';
 
 interface BeepTransaction {
     fare: number | null;
@@ -33,7 +33,7 @@ const apiUrl = 'https://mrt-system-be-1qvh.onrender.com';
 const Transactions = () => {
     const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
     const [card, setCard] = useState<BeepCard>();
-    const cardId = storage.getString('mainCard');
+    const cardId = storage.getString('viewCard');
 
     useEffect(() => {
         const fetchCards = async () => {
@@ -65,10 +65,12 @@ const Transactions = () => {
         return `${date.toLocaleDateString(undefined, options)}`;
     };
 
+    const _goBack = () => navigation.navigate('Main', {index: 1});
     return (
         <>
             <SafeAreaView style={{ flex: 1, backgroundColor: '#edf3ff' }}>
                 <Appbar.Header mode='center-aligned' style={{ backgroundColor: '#0e1c43', height: 50 }} statusBarHeight={0}>
+                    <Appbar.BackAction onPress={_goBack} color='white' />
                     <Appbar.Content title="Transactions" titleStyle={{ fontWeight: '900', color: 'white', fontSize: 18 }} />
                 </Appbar.Header>
 
@@ -103,14 +105,14 @@ const Transactions = () => {
                                         <Text style={{ fontSize: 15 }}>{transaction.tapOut?.station ? transaction.tapOut.station : 'N/A'}</Text>
                                         <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: 270 }}>
                                             <Text style={{ fontSize: 11, color: 'gray', verticalAlign: 'bottom' }}>{transaction.tapOut?.date ? formattedDate(transaction.tapOut.date) : 'N/A'}</Text>
-                                            <Text style={{ fontSize: 13, color: 'red', verticalAlign: 'top' }}>- ₱{transaction.fare}.00</Text>
+                                            <Text style={{ fontSize: 13, color: 'red', verticalAlign: 'top' }}>- ₱{transaction.fare ? transaction.fare : 0}.00</Text>
                                         </View>
                                     </View>
                                 </View>
                             </Card.Content>
                         </Card>
                     ))}
-
+                    <View style={{marginBottom: 15}}/>
                 </ScrollView>
 
             </SafeAreaView>

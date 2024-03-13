@@ -8,6 +8,8 @@ import io from 'socket.io-client';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+const apiUrl = 'https://mrt-system-be-1qvh.onrender.com';
+
 // https://mrt-system-be-1qvh.onrender.com - http://localhost:8080
 const CameraQR = () => {
     const socket = io('https://mrt-system-be-1qvh.onrender.com');
@@ -15,37 +17,66 @@ const CameraQR = () => {
     const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
 
     const [isCodeScanned, setIsCodeScanned] = React.useState(false);
-
+    const [maintenance, setMaintenance] = React.useState(false);
+    const [roomID, setRoomID] = React.useState('');
     const codeScanner = useCodeScanner({
         codeTypes: ['qr', 'ean-13'],
         onCodeScanned: (codes) => {
             if (!isCodeScanned && codes.length > 0) {
                 const corners = codes[0].corners;
-
-                if (corners![0].x >= 471 && corners![0].y >= 230 &&
+                const scanBox = corners![0].x >= 471 && corners![0].y >= 230 &&
                     corners![1].x <= 815 && corners![1].y >= 230 &&
                     corners![2].x <= 815 && corners![2].y <= 489 &&
-                    corners![3].x >= 471 && corners![3].y <= 489
-                ) {
-                    console.log('QR Value: ', codes[0].value);
-                    const connectionId = codes[0].value;
-                    socket.emit('joinRoom', connectionId);
+                    corners![3].x >= 471 && corners![3].y <= 489;
 
-                    const savedFavCard = storage.getString('mainCard');
-                    socket.emit('privateMessage', connectionId, savedFavCard);
+                if (scanBox) {
+                    if (!codes[0].value?.startsWith('mrtQR-')) {
+                        setIsCodeScanned(true);
+                        navigation.navigate('ScanOutput', { message: 'Invalid QR' });
+                        return;
+                    } else if (maintenance) {
+                        setIsCodeScanned(true);
+                        navigation.navigate('ScanOutput', { message: 'Under Maintenance' });
+                        return;
+                    } else {
+                        setIsCodeScanned(true);
+                        const connectionId = codes[0].value;
+                        setRoomID(connectionId);
+                        socket.emit('joinRoom', connectionId);
+                        const savedFavCard = storage.getString('mainCard');
+                        socket.emit('privateMessage', connectionId, savedFavCard);
+                        return;
+                    }
 
-                    setIsCodeScanned(true);
                 }
             }
         },
     });
 
     useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const response = await fetch(`${apiUrl}/setting`); // Assuming the API endpoint is '/api/setting'
+                const data = await response.json();
+                setMaintenance(data[0].maintenance); // Assuming the response is an array with a single object
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        fetchSettings();
+    }, [])
+
+
+    useEffect(() => {
         socket.on('reply', (reply) => {
-            console.log(reply);
             navigation.navigate('ScanOutput', { message: reply });
         })
-    }, [isCodeScanned === true])
+
+        return () => {
+            socket.off('reply');
+        };
+    }, [isCodeScanned])
 
     if (device == null) return <View style={styles.container} />;
 
@@ -57,13 +88,23 @@ const CameraQR = () => {
         }
     }, [hasPermission, requestPermission]);
 
+    const isFocused = useIsFocused();
+
     useEffect(() => {
-        socket.connect();
+        if (isFocused) {
+            socket.connect();
+        } else {
+            if (roomID) {
+                socket.emit('leaveRoom', roomID);
+                socket.disconnect();
+            }
+        }
 
         return () => {
             socket.disconnect();
         };
-    }, []);
+    }, [isFocused]);
+
 
     useFocusEffect(React.useCallback(() => {
         if (isCodeScanned === true) {
@@ -85,7 +126,7 @@ const CameraQR = () => {
 
         return () => backHandler.remove();
     }, []);
-    
+
     return (
         <>
             <SafeAreaView style={{ flex: 1 }}>

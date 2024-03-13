@@ -13,6 +13,7 @@ import Transactions from './screens/home/pages/transactions';
 import AddCard from './screens/home/pages/subpages/addCard';
 import ResetPin from './screens/home/pages/subpages/resetPin';
 import ScanOutput from './screens/home/pages/subpages/scanOutput';
+import ViewTransaction from './screens/home/pages/subpages/viewTransaction';
 import { MMKV } from 'react-native-mmkv'
 
 const storage = new MMKV();
@@ -43,6 +44,7 @@ function App() {
         <Stack.Screen name="AddCard" component={AddCard} options={{ headerShown: false }} />
         <Stack.Screen name="ResetPin" component={ResetPin} options={{ headerShown: false }} />
         <Stack.Screen name="ScanOutput" component={ScanOutput} options={{ headerShown: false }} />
+        <Stack.Screen name="ViewTransaction" component={ViewTransaction} options={{ headerShown: false }} />
 
       </Stack.Navigator>
     </NavigationContainer>
