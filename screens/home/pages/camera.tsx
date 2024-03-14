@@ -72,10 +72,6 @@ const CameraQR = () => {
         socket.on('reply', (reply) => {
             navigation.navigate('ScanOutput', { message: reply });
         })
-
-        return () => {
-            socket.off('reply');
-        };
     }, [isCodeScanned])
 
     if (device == null) return <View style={styles.container} />;
@@ -91,16 +87,10 @@ const CameraQR = () => {
     const isFocused = useIsFocused();
 
     useEffect(() => {
-        if (isFocused) {
-            socket.connect();
-        } else {
-            if (roomID) {
-                socket.emit('leaveRoom', roomID);
-                socket.disconnect();
-            }
-        }
+        socket.connect();
 
         return () => {
+            socket.off('reply');
             socket.disconnect();
         };
     }, [isFocused]);

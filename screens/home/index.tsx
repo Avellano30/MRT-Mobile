@@ -9,7 +9,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { AppState, AppStateStatus, BackHandler, TouchableHighlight, View } from 'react-native';
 import { NavigationProp, RouteProp, useFocusEffect } from '@react-navigation/native';
 import UserInactivity from 'react-native-user-detector-active-inactive';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type Props = {
   route: RouteProp<any, any>;
@@ -87,11 +87,20 @@ const Main = ({ route, navigation }: Props) => {
   useFocusEffect(() => {
     setCurrentScreen(route.params?.name);
   })
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      return true; // Prevent default behavior
+    });
+
+    return () => backHandler.remove();
+  }, []);
+  
   return (
     <UserInactivity
       key={resetTimer}
       currentScreen={currentScreen}
-      timeForInactivity={560}
+      timeForInactivity={60}
       skipKeyboard={true}
       // consoleTimer={true}
       // consoleTouchScreen={true}
@@ -103,9 +112,9 @@ const Main = ({ route, navigation }: Props) => {
         navigationState={{ index, routes }}
         onIndexChange={setIndex}
         renderScene={renderScene}
-        barStyle={{ backgroundColor: 'white' }}
+        barStyle={{ backgroundColor: 'white'}}
         activeColor='#0e1c43'
-        activeIndicatorStyle={{ backgroundColor: 'transparent' }}
+        activeIndicatorStyle={{ backgroundColor: 'transparent', borderTopColor: '#0e1c43', borderTopWidth: 3, marginBottom: 23, borderRadius: 0 }}
       />
       <View style={{ position: 'absolute', bottom: 50, left: 0, right: 0, alignItems: 'center' }}>
         <TouchableHighlight

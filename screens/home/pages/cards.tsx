@@ -2,7 +2,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { ParamListBase, useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { Alert, Dimensions, ScrollView, TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, Dimensions, ScrollView, TouchableHighlight, TouchableWithoutFeedback, View, Modal, TouchableOpacity, StyleSheet } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { Appbar, Button, Card, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -49,6 +49,7 @@ const Cards = () => {
     const [cards, setCards] = useState<BeepCard[]>([]);
     const [mainCard, setMainCard] = useState<String | null>('');
 
+    const [modalVisible, setModalVisible] = useState(false);
     const isFocused = useIsFocused();
 
     const handleCardClick = (cardId: number) => {
@@ -127,12 +128,39 @@ const Cards = () => {
                 </TouchableHighlight>
                 <TouchableHighlight
                     key={`delete-${index}`}
-                    onPress={() => unlinkCard(cardId)}
+                    onPress={() => setModalVisible(true)}
                     underlayColor="#dddddd"
                     style={{ backgroundColor: '#FF3B30', justifyContent: 'center', paddingLeft: 30, height: 90, borderRadius: 10 }}
                 >
                     <Icon name='trash' color={'white'} size={20} />
                 </TouchableHighlight>
+
+                <View style={styles.container}>
+                    <Modal
+                        animationType="fade"
+                        transparent={true}
+                        visible={modalVisible}
+                        onRequestClose={() => {
+                            setModalVisible(!modalVisible);
+                        }}
+                    >
+                        <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.4)', justifyContent: 'center', alignItems: 'center', }}>
+                            <View style={styles.modalView}>
+                                <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, paddingTop: 20 }}>Remove Card</Text>
+                                <Text style={{ marginBottom: 15, textAlign: 'center', fontWeight: '200' }}>Are you sure to remove this card?</Text>
+                                <View style={{ flexDirection: 'row', borderTopWidth: 1, borderColor: 'darkgray', width: 300, justifyContent: 'space-evenly' }}>
+                                    <TouchableOpacity style={{ backgroundColor: '#fff', paddingVertical: 15, width: 150, borderBottomLeftRadius: 20 }} onPress={() => setModalVisible(!modalVisible)} >
+                                        <Text style={{ color: '#0e1c43', fontWeight: 'bold', textAlign: 'center', fontSize: 20 }}>No</Text>
+                                    </TouchableOpacity>
+                                    <View style={{ borderLeftWidth: 1, borderColor: 'darkgray' }} />
+                                    <TouchableOpacity style={{ backgroundColor: '#fff', paddingVertical: 15, width: 150, borderBottomRightRadius: 20 }} onPress={() => { unlinkCard(cardId); setModalVisible(false); }} >
+                                        <Text style={{color: 'red', fontWeight: 'bold', textAlign: 'center', fontSize: 20 }}>Yes</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
+                </View>
             </View>
         ];
     };
@@ -142,7 +170,7 @@ const Cards = () => {
             if (deviceID) {
                 await fetchCards();
                 const savedMainCard = storage.getString('mainCard');
-                if (savedMainCard === undefined) {
+                if (savedMainCard === null) {
                     storage.set('mainCard', String(cards[0].cardId));
                     setMainCard(String(cards[0].cardId));
                 } else {
@@ -213,7 +241,7 @@ const Cards = () => {
                                                 </View>
                                                 <View style={{ marginLeft: 10 }}>
                                                     <Text style={{ fontSize: 15 }}>MRT3 Rail Service Provider</Text>
-                                                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: 270 }}>
+                                                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: 280 }}>
                                                         <Text style={{ fontSize: 11, color: 'gray', verticalAlign: 'bottom' }}>{transaction.tapOut?.date ? formattedDate(transaction.tapOut.date) : 'N/A'}</Text>
                                                         <Text style={{ fontSize: 13, color: 'red', verticalAlign: 'top' }}>- ₱{transaction.fare}.00</Text>
                                                     </View>
@@ -251,5 +279,26 @@ const Cards = () => {
 
     );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalView: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+});
 
 export default Cards;

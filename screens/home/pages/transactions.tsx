@@ -77,40 +77,50 @@ const Transactions = () => {
                     <Card style={{ marginHorizontal: 10, backgroundColor: 'white', marginVertical: 15 }}>
                         <Card.Content>
                             <Text style={{ fontSize: 17, fontWeight: 'bold' }}>Card Id: {cardId}</Text>
-                            <Text style={{ fontSize: 12 }}>Latest Transactions as of {formattedDate(card?.transactions[card.transactions.length - 1].tapOut?.date ?? new Date().toISOString())}</Text>
+                            <Text style={{ fontSize: 12 }}>Latest Transactions as of {formattedDate(card?.transactions[card.transactions.length - 1]?.tapOut?.date ?? new Date().toISOString())}</Text>
                         </Card.Content>
                     </Card>
 
-                    {card?.transactions.filter(transactions => transactions.tapOut?.station !== null).reverse().map((transaction, index) => (
-                        <Card key={index} style={{ marginHorizontal: 10, backgroundColor: 'white', marginVertical: 3 }}>
-                            <Card.Content style={{ marginLeft: 5, marginVertical: 1 }}>
-                                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
-                                    <View style={{ backgroundColor: '#cfd6dc', padding: 5, width: 40, height: 40, borderRadius: 100, justifyContent: 'center' }}>
-                                        <Icon name="log-in-outline" size={25} color={'black'} />
-                                    </View>
-                                    <View style={{ marginLeft: 10 }}>
-                                        <Text style={{ fontSize: 15 }}>{transaction.tapIn?.station ? transaction.tapIn.station : 'N/A'}</Text>
-                                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: 270 }}>
-                                            <Text style={{ fontSize: 11, color: 'gray', verticalAlign: 'bottom' }}>{transaction.tapIn?.date ? formattedDate(transaction.tapIn.date) : 'N/A'}</Text>
-                                        </View>
-                                    </View>
-                                </View>
-                                <View key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 15 }}>
-                                    <View style={{ backgroundColor: '#cfd6dc', padding: 5, width: 40, height: 40, borderRadius: 100, alignItems: 'flex-end', justifyContent: 'center' }}>
-                                        <Icon name="log-out-outline" size={25} color={'black'} />
-                                    </View>
-                                    <View style={{ marginLeft: 10 }}>
-                                        <Text style={{ fontSize: 15 }}>{transaction.tapOut?.station ? transaction.tapOut.station : 'N/A'}</Text>
-                                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: 270 }}>
-                                            <Text style={{ fontSize: 11, color: 'gray', verticalAlign: 'bottom' }}>{transaction.tapOut?.date ? formattedDate(transaction.tapOut.date) : 'N/A'}</Text>
-                                            <Text style={{ fontSize: 13, color: 'red', verticalAlign: 'top' }}>- ₱{transaction.fare}.00</Text>
-                                        </View>
-                                    </View>
-                                </View>
-                            </Card.Content>
+                    {card && card.transactions.length === 0 && (
+                        <Card style={{ marginHorizontal: 10, backgroundColor: 'white', marginVertical: 3 }}>
+                            <Text style={{ textAlign: 'center', padding: 20}}>No transactions to display</Text>
                         </Card>
-                    ))}
+                    )}
 
+                    {card && card.transactions.length > 0 && (
+                        card.transactions
+                            .filter(transaction => transaction.tapOut && transaction.tapOut.station !== null)
+                            .reverse()
+                            .map((transaction, index) => (
+                                <Card key={index} style={{ marginHorizontal: 10, backgroundColor: 'white', marginVertical: 3 }}>
+                                    <Card.Content style={{ marginLeft: 5, marginVertical: 1 }}>
+                                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
+                                            <View style={{ backgroundColor: '#cfd6dc', padding: 5, width: 40, height: 40, borderRadius: 100, justifyContent: 'center' }}>
+                                                <Icon name="log-in-outline" size={25} color={'black'} />
+                                            </View>
+                                            <View style={{ marginLeft: 10 }}>
+                                                <Text style={{ fontSize: 15 }}>{transaction.tapIn?.station ? transaction.tapIn.station : 'N/A'}</Text>
+                                                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: 285 }}>
+                                                    <Text style={{ fontSize: 11, color: 'gray', verticalAlign: 'bottom' }}>{transaction.tapIn?.date ? formattedDate(transaction.tapIn.date) : 'N/A'}</Text>
+                                                </View>
+                                            </View>
+                                        </View>
+                                        <View key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 15 }}>
+                                            <View style={{ backgroundColor: '#cfd6dc', padding: 5, width: 40, height: 40, borderRadius: 100, alignItems: 'flex-end', justifyContent: 'center' }}>
+                                                <Icon name="log-out-outline" size={25} color={'black'} />
+                                            </View>
+                                            <View style={{ marginLeft: 10 }}>
+                                                <Text style={{ fontSize: 15 }}>{transaction.tapOut?.station ? transaction.tapOut.station : 'N/A'}</Text>
+                                                <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: 285 }}>
+                                                    <Text style={{ fontSize: 11, color: 'gray', verticalAlign: 'bottom' }}>{transaction.tapOut?.date ? formattedDate(transaction.tapOut.date) : 'N/A'}</Text>
+                                                    <Text style={{ fontSize: 13, color: 'red', verticalAlign: 'top' }}>- ₱{transaction.fare}.00</Text>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    </Card.Content>
+                                </Card>
+                            ))
+                    )}
                 </ScrollView>
 
             </SafeAreaView>

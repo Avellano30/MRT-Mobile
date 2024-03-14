@@ -40,7 +40,7 @@ const Pin = () => {
 
       <View style={{ marginBottom: 15 }} />
 
-      <Text style={{ fontSize: 28, fontWeight: '600', color: 'black', textAlign: 'center' }}>Enter your New PIN</Text>
+      <Text style={{ fontSize: 28, fontWeight: '600', color: 'black', textAlign: 'center' }}>Create your New PIN</Text>
 
       <Text style={{ textAlign: 'center', color: 'black', marginBottom: 20, marginTop: 5 }}>Enter new 6-digit passcode</Text>
       <View style={{ alignItems: 'center' }}>
